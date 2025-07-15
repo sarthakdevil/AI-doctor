@@ -26,7 +26,7 @@ sys.path.append(str(current_dir))
 
 # Import our crew and tools
 try:
-    from crew.doc_crew import DocCrew
+    from doc_crew import DocCrew
     from tools.milvus import ChromaDBClient, create_chromadb_client_safe
     IMPORTS_SUCCESSFUL = True
     IMPORT_ERROR = None
