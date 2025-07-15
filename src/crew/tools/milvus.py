@@ -70,7 +70,7 @@ logger = logging.getLogger(__name__)
 class ChromaDBClient:
     """Client for interacting with ChromaDB vector database"""
     
-    def __init__(self, collection_name: str = "medical_documents", persist_directory: str = None):
+    def __init__(self, collection_name: str = "medical_documents", persist_directory: str = None, reset_on_init: bool = True):
         if not CHROMADB_AVAILABLE:
             raise ImportError(
                 "ChromaDB is not available. Please install ChromaDB with: pip install chromadb\n"
@@ -78,6 +78,7 @@ class ChromaDBClient:
             )
             
         self.collection_name = collection_name
+        self.reset_on_init = reset_on_init
         
         # Set default persist directory
         if persist_directory is None:
@@ -109,22 +110,34 @@ class ChromaDBClient:
             raise
     
     def _setup_collection(self):
-        """Set up the collection if it doesn't exist"""
+        """Set up the collection - delete existing and create fresh one (default) or reuse existing"""
         try:
             # Get list of existing collections
             existing_collections = [col.name for col in self.client.list_collections()]
             
             if self.collection_name in existing_collections:
-                # Collection exists, get it
-                self.collection = self.client.get_collection(name=self.collection_name)
-                logger.info(f"Collection '{self.collection_name}' already exists with {self.collection.count()} documents")
+                if self.reset_on_init:
+                    # Collection exists, delete it first for fresh start
+                    self.client.delete_collection(name=self.collection_name)
+                    logger.info(f"Deleted existing collection '{self.collection_name}' for fresh start")
+                    
+                    # Create new fresh collection
+                    self.collection = self.client.create_collection(
+                        name=self.collection_name,
+                        metadata={"description": "Collection for storing medical document embeddings"}
+                    )
+                    logger.info(f"Created fresh collection '{self.collection_name}'")
+                else:
+                    # Reuse existing collection
+                    self.collection = self.client.get_collection(name=self.collection_name)
+                    logger.info(f"Reusing existing collection '{self.collection_name}' with {self.collection.count()} documents")
             else:
                 # Collection doesn't exist, create it
                 self.collection = self.client.create_collection(
                     name=self.collection_name,
                     metadata={"description": "Collection for storing medical document embeddings"}
                 )
-                logger.info(f"Collection '{self.collection_name}' created successfully")
+                logger.info(f"Created new collection '{self.collection_name}'")
                 
         except Exception as e:
             logger.error(f"Failed to setup collection: {e}")
