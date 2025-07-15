@@ -24,6 +24,7 @@ dependencies = [
     { name = "pymupdf" },
     { name = "pypdf" },
     { name = "pypdf2" },
+    { name = "pysqlite3-binary" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
     { name = "streamlit" },
@@ -43,6 +44,7 @@ requires-dist = [
     { name = "pymupdf", specifier = ">=1.26.3" },
     { name = "pypdf", specifier = ">=5.8.0" },
     { name = "pypdf2", specifier = ">=3.0.1" },
+    { name = "pysqlite3-binary", specifier = "==0.5.4" },
     { name = "python-dotenv", specifier = ">=1.1.1" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "streamlit", specifier = ">=1.46.1" },
@@ -3348,6 +3350,16 @@ version = "0.3.4"
 source = { registry = "https://pypi.org/simple" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/48/0a/c99fb7d7e176f8b176ef19704a32e6a9c6aafdf19ef75a187f701fc15801/pysbd-0.3.4-py3-none-any.whl", hash = "sha256:cd838939b7b0b185fcf86b0baf6636667dfb6e474743beeff878e9f42e022953", size = 71082 },
+]
+
+[[package]]
+name = "pysqlite3-binary"
+version = "0.5.4"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/45/c9/970017bfb83c3f374b3f85d85b2241954ca94a7cfe8d8709b0da5507a439/pysqlite3_binary-0.5.4-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:bf257ca54a0b94dce14324b29960fae5b1d57a669ce327b92fe245049abf2854", size = 5184545 },
+    { url = "https://files.pythonhosted.org/packages/fe/6a/fd500f0ab7d722671c6ec93093e93b7448b416cee2f35fc6c40131ddfa87/pysqlite3_binary-0.5.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:cb551d736ac3a049b3a91332dbcb0df506eaed58add8a95acfd264dc45ce3fa8", size = 5195175 },
+    { url = "https://files.pythonhosted.org/packages/87/ed/f6638728ea46bf90f0fba63d7f53a57cbab1ba7d34a1eb86419ca582a797/pysqlite3_binary-0.5.4-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:bb3653a0eb0ef5db2d0ed49d43b11ab4be24fdf5b2e65a39650fc59348e30dc6", size = 5188499 },
 ]
 
 [[package]]
