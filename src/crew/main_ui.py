@@ -27,7 +27,7 @@ sys.path.append(str(current_dir))
 # Import our crew and tools
 try:
     from doc_crew import DocCrew
-    from tools.milvus import ChromaDBClient
+    from tools.milvus import ChromaDBClient, create_chromadb_client_safe
     IMPORTS_SUCCESSFUL = True
     IMPORT_ERROR = None
 except ImportError as e:
@@ -36,6 +36,7 @@ except ImportError as e:
     # Don't stop here, let the UI handle it gracefully
     DocCrew = None
     ChromaDBClient = None
+    create_chromadb_client_safe = None
 
 # Page configuration
 st.set_page_config(
@@ -381,7 +382,14 @@ def process_documents(uploaded_files):
     
     # Initialize ChromaDBClient for direct document processing
     try:
-        chromadb_client = ChromaDBClient()
+        if create_chromadb_client_safe is not None:
+            chromadb_client = create_chromadb_client_safe()
+        else:
+            chromadb_client = ChromaDBClient() if ChromaDBClient is not None else None
+        
+        if chromadb_client is None:
+            st.error("❌ Failed to initialize ChromaDB client: Client creation returned None")
+            return
     except Exception as e:
         st.error(f"❌ Failed to initialize ChromaDB client: {str(e)}")
         return
@@ -1278,7 +1286,14 @@ def process_documents_for_chat(uploaded_files):
     
     # Initialize ChromaDBClient for direct document processing
     try:
-        chromadb_client = ChromaDBClient()
+        if create_chromadb_client_safe is not None:
+            chromadb_client = create_chromadb_client_safe()
+        else:
+            chromadb_client = ChromaDBClient() if ChromaDBClient is not None else None
+        
+        if chromadb_client is None:
+            st.error("❌ Failed to initialize ChromaDB client: Client creation returned None")
+            return
     except Exception as e:
         st.error(f"❌ Failed to initialize ChromaDB client: {str(e)}")
         return

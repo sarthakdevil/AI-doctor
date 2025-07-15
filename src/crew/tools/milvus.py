@@ -37,6 +37,24 @@ try:
     import chromadb
     from chromadb.config import Settings
     CHROMADB_AVAILABLE = True
+    
+    # Try to fix SQLite issues in deployment environments
+    try:
+        import sqlite3
+        # Test SQLite functionality
+        test_conn = sqlite3.connect(':memory:')
+        test_conn.close()
+    except Exception as sqlite_error:
+        print(f"SQLite test failed: {sqlite_error}")
+        # Try to use pysqlite3 as fallback
+        try:
+            import pysqlite3.dbapi2 as sqlite3
+            import sys
+            sys.modules['sqlite3'] = sys.modules['pysqlite3.dbapi2']
+            print("Using pysqlite3 as SQLite replacement")
+        except Exception as pysqlite_error:
+            print(f"pysqlite3 fallback also failed: {pysqlite_error}")
+            
 except ImportError as e:
     print(f"Warning: ChromaDB not available: {e}")
     print("Installing ChromaDB...")
@@ -71,42 +89,83 @@ class ChromaDBClient:
     """Client for interacting with ChromaDB vector database"""
     
     def __init__(self, collection_name: str = "medical_documents", persist_directory: str = None, reset_on_init: bool = True):
-        if not CHROMADB_AVAILABLE:
-            raise ImportError(
-                "ChromaDB is not available. Please install ChromaDB with: pip install chromadb\n"
-                "This is required for document storage and search functionality."
-            )
+        try:
+            if not CHROMADB_AVAILABLE:
+                raise ImportError(
+                    "ChromaDB is not available. Please install ChromaDB with: pip install chromadb\n"
+                    "This is required for document storage and search functionality."
+                )
+                
+            self.collection_name = collection_name
+            self.reset_on_init = reset_on_init
             
-        self.collection_name = collection_name
-        self.reset_on_init = reset_on_init
-        
-        # Set default persist directory
-        if persist_directory is None:
-            persist_directory = os.path.join(os.getcwd(), "chroma_db")
-        
-        self.persist_directory = persist_directory
-        
-        # Ensure persist directory exists
-        os.makedirs(self.persist_directory, exist_ok=True)
-        
-        self._connect()
-        self._setup_collection()
+            # Set default persist directory
+            if persist_directory is None:
+                persist_directory = os.path.join(os.getcwd(), "chroma_db")
+            
+            self.persist_directory = persist_directory
+            
+            # Ensure persist directory exists
+            try:
+                os.makedirs(self.persist_directory, exist_ok=True)
+                logger.info(f"Created/verified persist directory: {self.persist_directory}")
+            except Exception as dir_error:
+                logger.error(f"Failed to create persist directory: {dir_error}")
+                raise
+            
+            # Initialize client and collection
+            self._connect()
+            self._setup_collection()
+            
+            logger.info(f"ChromaDBClient initialized successfully with collection '{self.collection_name}'")
+            
+        except Exception as init_error:
+            logger.error(f"Failed to initialize ChromaDBClient: {init_error}")
+            logger.error(f"Error type: {type(init_error).__name__}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            raise
     
     def _connect(self):
         """Connect to ChromaDB with persistent storage"""
         try:
+            logger.info(f"Attempting to connect to ChromaDB at {self.persist_directory}")
+            
+            # Verify ChromaDB imports are available
+            if not hasattr(chromadb, 'PersistentClient'):
+                raise AttributeError("chromadb.PersistentClient is not available")
+            
+            if not hasattr(chromadb, 'Settings') and not hasattr(Settings, '__call__'):
+                logger.warning("Settings class may not be properly imported")
+            
             # Create ChromaDB client with persistent storage
-            self.client = chromadb.PersistentClient(
-                path=self.persist_directory,
-                settings=Settings(
-                    anonymized_telemetry=False,
-                    allow_reset=True
+            try:
+                self.client = chromadb.PersistentClient(
+                    path=self.persist_directory,
+                    settings=Settings(
+                        anonymized_telemetry=False,
+                        allow_reset=True
+                    )
                 )
-            )
-            logger.info(f"Connected to ChromaDB at {self.persist_directory}")
+                logger.info(f"Successfully connected to ChromaDB at {self.persist_directory}")
+                
+                # Test the client by listing collections
+                try:
+                    collections = self.client.list_collections()
+                    logger.info(f"Found {len(collections)} existing collections")
+                except Exception as list_error:
+                    logger.warning(f"Could not list collections: {list_error}")
+                    
+            except Exception as client_error:
+                logger.error(f"Failed to create ChromaDB client: {client_error}")
+                logger.error(f"Client error type: {type(client_error).__name__}")
+                raise
             
         except Exception as e:
             logger.error(f"Failed to connect to ChromaDB: {e}")
+            logger.error(f"Connection error type: {type(e).__name__}")
+            import traceback
+            logger.error(f"Connection traceback: {traceback.format_exc()}")
             raise
     
     def _setup_collection(self):
@@ -502,7 +561,16 @@ class ChromaDBReaderTool(BaseTool):
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.client = ChromaDBClient()
+        try:
+            logger.info("Initializing ChromaDBReaderTool...")
+            self.client = ChromaDBClient()
+            logger.info("ChromaDBReaderTool initialized successfully")
+        except Exception as e:
+            logger.error(f"Failed to initialize ChromaDBReaderTool: {e}")
+            logger.error(f"Tool error type: {type(e).__name__}")
+            # Set client to None to handle gracefully
+            self.client = None
+            # Don't raise here to allow the tool to be created even if ChromaDB fails
     
     def _run(self, query_text: str, top_k: int = 10) -> str:
         """
@@ -519,6 +587,9 @@ class ChromaDBReaderTool(BaseTool):
             if not query_text:
                 return "Error: query_text is required for search operation"
             
+            if self.client is None:
+                return "Error: ChromaDB client not initialized. Please check ChromaDB installation and configuration."
+            
             results = self.client.search_by_text(
                 query_text=query_text,
                 top_k=top_k
@@ -530,6 +601,7 @@ class ChromaDBReaderTool(BaseTool):
                 return f"No documents found for query: {query_text}"
                 
         except Exception as e:
+            logger.error(f"Error executing search operation: {e}")
             return f"Error executing search operation: {str(e)}"
 
 
@@ -549,16 +621,66 @@ def search_chromadb_by_text(query_text: str, top_k: int = 10) -> List[Dict[str, 
         List of matching documents
     """
     try:
+        logger.info("Creating ChromaDB client for search operation...")
         client = ChromaDBClient()
         return client.search_by_text(query_text, top_k)
     except Exception as e:
         logger.error(f"Failed to search by text: {e}")
+        logger.error(f"Search error type: {type(e).__name__}")
         return []
 
 
-# Create tool instance for use in CrewAI
-chromadb_search_tool = ChromaDBReaderTool()
+# Create tool instance for use in CrewAI with safe initialization
+try:
+    logger.info("Creating ChromaDBReaderTool instance...")
+    chromadb_search_tool = ChromaDBReaderTool()
+    logger.info("ChromaDBReaderTool instance created successfully")
+except Exception as e:
+    logger.error(f"Failed to create ChromaDBReaderTool instance: {e}")
+    # Create a dummy tool that will handle errors gracefully
+    chromadb_search_tool = None
 
-# Backward compatibility aliases
-search_milvus_by_text = search_chromadb_by_text
-milvus_search_tool = chromadb_search_tool
+# Safe wrapper functions for deployment environments
+def create_chromadb_client_safe(**kwargs):
+    """
+    Safely create a ChromaDB client with enhanced error handling for deployment
+    
+    Returns:
+        ChromaDBClient instance or None if creation fails
+    """
+    try:
+        logger.info("Attempting to create ChromaDB client...")
+        
+        # Check if ChromaDB is available
+        if not CHROMADB_AVAILABLE:
+            logger.error("ChromaDB is not available in this environment")
+            return None
+        
+        # Try to create client with default settings first
+        client = ChromaDBClient(**kwargs)
+        logger.info("ChromaDB client created successfully")
+        return client
+        
+    except Exception as e:
+        logger.error(f"Failed to create ChromaDB client: {e}")
+        logger.error(f"Client creation error type: {type(e).__name__}")
+        import traceback
+        logger.error(f"Client creation traceback: {traceback.format_exc()}")
+        return None
+
+def get_chromadb_tool_safe():
+    """
+    Safely get ChromaDB search tool
+    
+    Returns:
+        ChromaDBReaderTool instance or None if creation fails
+    """
+    try:
+        if chromadb_search_tool is not None and chromadb_search_tool.client is not None:
+            return chromadb_search_tool
+        else:
+            logger.warning("ChromaDB search tool is not properly initialized")
+            return None
+    except Exception as e:
+        logger.error(f"Error accessing ChromaDB search tool: {e}")
+        return None
