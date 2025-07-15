@@ -1,0 +1,41 @@
+# AI Doctor Crew - Complete Requirements
+# Core CrewAI and AI libraries
+crewai>=0.141.0
+crewai-tools>=0.51.1
+crewai-project>=0.1.0
+
+# Google AI and embeddings
+google-generativeai>=0.3.0
+
+# Vector database
+pymilvus>=2.3.0
+
+# Web interface
+streamlit>=1.46.1
+
+# Document processing
+PyMuPDF>=1.26.3
+pypdf>=3.0.0
+
+# Data manipulation
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Environment and configuration
+python-dotenv>=1.1.1
+pyyaml>=6.0
+
+# API tools
+bytez>=1.0.4
+
+# Additional utilities
+Pillow>=10.0.0
+plotly>=5.0.0
+pathlib2>=2.3.0
+typing-extensions>=4.8.0
+pydantic>=2.0.0
+
+# Development and testing (optional)
+pytest>=7.0.0
+black>=23.0.0
+flake8>=6.0.0

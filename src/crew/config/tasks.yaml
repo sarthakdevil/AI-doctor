@@ -1,0 +1,53 @@
+analyze_medical_query:
+  description: >
+    Listen to the user's medical question and identify what to search for. Like a doctor 
+    taking patient history - understand their concern and plan what information you need.
+    ALWAYS consider the patient's profile (age, gender, medical conditions, current medications) 
+    if provided, even if no documents are uploaded. Use tools ONLY when necessary - if it's 
+    a simple general medical question, you can answer directly using the patient's profile. 
+    Only use search tools if documents are available and relevant.
+    {user_query}
+  expected_output: >
+    Understanding of the user's medical concern, consideration of their medical profile 
+    (age, conditions, medications), and plan for what to search in their medical records 
+    (if any documents available) and current medical knowledge.
+
+search_patient_history:
+  description: >
+    Search for relevant patient information. First, check the patient's profile information 
+    (age, gender, medical conditions, current medications) that was provided during setup.
+    ONLY if the user has also uploaded medical documents, search them for additional 
+    relevant information using milvus_search tool. If no documents were uploaded, focus 
+    on the profile information and note "Patient profile available but no documents uploaded" 
+    or if no profile either "No patient information available - providing general guidance".
+  expected_output: >
+    Summary of patient profile information (age, conditions, medications) and any relevant 
+    medical history found in uploaded documents, OR clear statement about what patient 
+    information is available (profile only, documents only, or neither).
+
+provide_medical_guidance:
+  description: >
+    Like a doctor, provide helpful medical guidance based on the patient's question and 
+    ALL available patient information (profile + medical history if available). ALWAYS 
+    consider the patient's profile (age, gender, medical conditions, current medications) 
+    when giving advice - this makes your response personalized even without documents.
+    Use tools SPARINGLY - only when you need specific current information:
+    - Use run_model tool (Bytez) only for complex medical questions needing specialized knowledge
+    - Use serper_dev_tool only for very recent medical research or current guidelines
+    - For general health questions, use your existing medical knowledge plus patient profile
+    Tailor advice to the patient's age, conditions, and medications when available.
+  expected_output: >
+    Clear, doctor-like response that addresses the user's concern with practical guidance, 
+    considers their medical profile (age, conditions, medications), references their medical 
+    history if available, and includes appropriate recommendations to consult healthcare 
+    professionals when needed.
+
+synthesize_response:
+  description: >
+    Take the medical guidance from the clinical advisor and create a clear, easy-to-understand 
+    response for the patient. Make the medical information accessible while maintaining accuracy. 
+    Include appropriate disclaimers and recommendations to consult healthcare professionals.
+    Do NOT use any tools - just synthesize the information already gathered.
+  expected_output: >
+    A well-structured, patient-friendly medical response that combines all findings into 
+    clear, understandable language with proper medical disclaimers and next steps.
