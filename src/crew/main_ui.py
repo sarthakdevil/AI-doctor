@@ -1,3 +1,7 @@
+__import__('pysqlite3')
+import sys
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+sys.modules["sqlite3.dbapi2"] = sys.modules["pysqlite3.dbapi2"]
 #!/usr/bin/env python3
 """
 AI Doctor Crew - Streamlit Web Interface
