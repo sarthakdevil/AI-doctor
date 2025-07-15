@@ -33,18 +33,42 @@ class DocCrew:
     tasks_config = 'config/tasks.yaml'
     
     def __init__(self):
-        self.config_path = Path(__file__).parent / "config"
-        self.agents_config_data = self._load_config("agents.yaml")
-        self.tasks_config_data = self._load_config("tasks.yaml")
-        
-        # Initialize Milvus tools
-        self.milvus_tools = [
-            milvus_search_tool,
-        ]
-        self.other_tools = [
-             SerperDevTool(),
-                run_model
-        ]
+        try:
+            self.config_path = Path(__file__).parent / "config"
+            self.agents_config_data = self._load_config("agents.yaml")
+            self.tasks_config_data = self._load_config("tasks.yaml")
+            
+            # Initialize ChromaDB tools with safety checks
+            self.milvus_tools = []
+            if milvus_search_tool is not None:
+                self.milvus_tools.append(milvus_search_tool)
+                print("✅ ChromaDB search tool initialized successfully")
+            else:
+                print("⚠️ Warning: milvus_search_tool is None - ChromaDB may not be properly initialized")
+                # Continue without the tool - crew can still function
+            
+            # Initialize other tools with error handling
+            self.other_tools = []
+            try:
+                self.other_tools.append(SerperDevTool())
+                print("✅ Serper search tool initialized")
+            except Exception as serper_error:
+                print(f"⚠️ Warning: Failed to initialize Serper tool: {serper_error}")
+            
+            try:
+                self.other_tools.append(run_model)
+                print("✅ Bytez model tool initialized")
+            except Exception as bytez_error:
+                print(f"⚠️ Warning: Failed to initialize Bytez tool: {bytez_error}")
+                
+            print(f"✅ DocCrew initialized with {len(self.milvus_tools)} ChromaDB tools and {len(self.other_tools)} other tools")
+            
+        except Exception as init_error:
+            print(f"❌ Error during DocCrew initialization: {init_error}")
+            print(f"Error type: {type(init_error).__name__}")
+            import traceback
+            print(f"Traceback: {traceback.format_exc()}")
+            raise
     
     def _load_config(self, filename: str) -> Dict[str, Any]:
         """Load configuration from YAML file"""

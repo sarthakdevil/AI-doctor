@@ -1041,7 +1041,31 @@ def main():
     if not st.session_state.doc_crew:
         try:
             with st.spinner("Initializing AI Doctor..."):
-                st.session_state.doc_crew = DocCrew()
+                # Enhanced error handling and debugging
+                st.write("🔍 Debug: Attempting to create DocCrew instance...")
+                
+                # Check if DocCrew class is available
+                if DocCrew is None:
+                    raise ImportError("DocCrew class is not available - import failed")
+                
+                # Try to initialize with detailed error tracking
+                try:
+                    doc_crew_instance = DocCrew()
+                    st.write("✅ Debug: DocCrew instance created successfully")
+                    st.session_state.doc_crew = doc_crew_instance
+                except TypeError as te:
+                    st.error(f"❌ DocCrew TypeError: {str(te)}")
+                    st.error("This usually indicates an issue with ChromaDB or tool initialization")
+                    raise
+                except AttributeError as ae:
+                    st.error(f"❌ DocCrew AttributeError: {str(ae)}")
+                    st.error("This usually indicates a missing dependency or incorrect import")
+                    raise
+                except Exception as init_error:
+                    st.error(f"❌ DocCrew initialization error: {str(init_error)}")
+                    st.error(f"Error type: {type(init_error).__name__}")
+                    raise
+                
                 if missing_vars:
                     st.session_state.system_status = "Ready (Limited)"
                 else:
@@ -1049,7 +1073,31 @@ def main():
             st.success("✅ AI Doctor initialized successfully!")
         except Exception as e:
             st.error(f"❌ Could not initialize AI Doctor: {str(e)}")
-            st.info("💡 Please check your API keys and try again.")
+            st.error(f"❌ Error type: {type(e).__name__}")
+            
+            # Provide specific debugging information
+            if "'NoneType' object is not callable" in str(e):
+                st.error("� **Debugging 'NoneType' Error:**")
+                st.write("- This error typically occurs when ChromaDB fails to initialize properly")
+                st.write("- Common causes: SQLite version conflicts, missing dependencies, file permissions")
+                st.write("- Check if ChromaDB is properly installed and configured")
+                
+                # Show import status
+                st.write("**Import Status:**")
+                st.write(f"- IMPORTS_SUCCESSFUL: {IMPORTS_SUCCESSFUL}")
+                st.write(f"- DocCrew available: {DocCrew is not None}")
+                st.write(f"- ChromaDBClient available: {ChromaDBClient is not None}")
+                st.write(f"- create_chromadb_client_safe available: {create_chromadb_client_safe is not None}")
+                
+                if not IMPORTS_SUCCESSFUL:
+                    st.write(f"- Import Error: {IMPORT_ERROR}")
+            
+            # Show full traceback for debugging
+            with st.expander("🔧 Full Error Traceback (for debugging)"):
+                st.code(traceback.format_exc())
+            
+            st.info("�💡 Please check your API keys and try again.")
+            st.info("🔄 If the issue persists, try refreshing the page or restarting the application.")
             return
     
     # Main chat interface

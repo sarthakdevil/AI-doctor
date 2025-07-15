@@ -684,3 +684,27 @@ def get_chromadb_tool_safe():
     except Exception as e:
         logger.error(f"Error accessing ChromaDB search tool: {e}")
         return None
+
+# Add fallback tool creation and compatibility aliases
+try:
+    # If ChromaDB tool creation failed, create a fallback tool
+    if chromadb_search_tool is None:
+        logger.warning("Creating fallback search tool since ChromaDB failed")
+        
+        class FallbackSearchTool(BaseTool):
+            name: str = "fallback_search"
+            description: str = "Fallback search tool when ChromaDB is not available"
+            
+            def _run(self, query_text: str, top_k: int = 10) -> str:
+                return f"ChromaDB search is currently unavailable. Query was: {query_text}"
+        
+        chromadb_search_tool = FallbackSearchTool()
+        logger.info("Created fallback search tool successfully")
+    
+except Exception as fallback_error:
+    logger.error(f"Failed to create fallback tool: {fallback_error}")
+    chromadb_search_tool = None
+
+# Backward compatibility aliases
+search_milvus_by_text = search_chromadb_by_text
+milvus_search_tool = chromadb_search_tool
