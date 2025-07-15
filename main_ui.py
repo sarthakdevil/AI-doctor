@@ -26,8 +26,8 @@ sys.path.append(str(current_dir))
 
 # Import our crew and tools
 try:
-    from doc_crew import DocCrew
-    from tools.milvus import ChromaDBClient, create_chromadb_client_safe
+    from src.crew.doc_crew import DocCrew
+    from src.crew.tools.milvus import ChromaDBClient, create_chromadb_client_safe
     IMPORTS_SUCCESSFUL = True
     IMPORT_ERROR = None
 except ImportError as e:
@@ -1096,8 +1096,8 @@ def main():
             with st.expander("🔧 Full Error Traceback (for debugging)"):
                 st.code(traceback.format_exc())
             
-            st.info("�� Please check your API keys and  try again.")
-            st.info("🔄 If the issue persists,try  refreshing the page orarestgrtina the applicitno.")
+            st.info("� Please check your API keys and t try again.")
+            st.info("🔄 If the issue persists,ry a refreshing the page orgrestartini the applicnt.o")
             return
     
     # Main chat interface
