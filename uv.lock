@@ -12,6 +12,7 @@ name = "ai-doctor-crew"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "bytez" },
     { name = "chromadb" },
     { name = "crewai" },
     { name = "crewai-tools" },
@@ -23,7 +24,6 @@ dependencies = [
     { name = "pymupdf" },
     { name = "pypdf" },
     { name = "pypdf2" },
-    { name = "pysqlite3-binary" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
     { name = "streamlit" },
@@ -31,6 +31,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "bytez", specifier = ">=1.0.4" },
     { name = "chromadb", specifier = ">=0.5.23" },
     { name = "crewai", specifier = ">=0.141.0" },
     { name = "crewai-tools", specifier = ">=0.51.1" },
@@ -42,7 +43,6 @@ requires-dist = [
     { name = "pymupdf", specifier = ">=1.26.3" },
     { name = "pypdf", specifier = ">=5.8.0" },
     { name = "pypdf2", specifier = ">=3.0.1" },
-    { name = "pysqlite3-binary", specifier = "==0.5.4" },
     { name = "python-dotenv", specifier = ">=1.1.1" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "streamlit", specifier = ">=1.46.1" },
@@ -347,6 +347,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/7d/46/aeab111f8e06793e4f0e421fcad593d547fb8313b50990f31681ee2fb1ad/build-1.2.2.post1.tar.gz", hash = "sha256:b36993e92ca9375a219c99e606a122ff365a760a2d4bba0caa09bd5278b608b7", size = 46701 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/84/c2/80633736cd183ee4a62107413def345f7e6e3c01563dbca1417363cf957e/build-1.2.2.post1-py3-none-any.whl", hash = "sha256:1d61c0887fa860c01971625baae8bdd338e517b836a2f70dd1f7aa3a6b2fc5b5", size = 22950 },
+]
+
+[[package]]
+name = "bytez"
+version = "1.0.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/57/0f/e5ca175aafd5fa60b8c1e0b9bb6a5c610ca0d6aa3f722c3e97aea9838703/bytez-1.0.4.tar.gz", hash = "sha256:b0d548428a1312cd442b0e3ec63141b4b77b8710b50647e3a7ff62ea066a7d7e", size = 35858 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ed/f7/59325d662b8bfc6cc76e5c5e038ef0918aa304538095c968f86861edda9e/bytez-1.0.4-py3-none-any.whl", hash = "sha256:423ea43604b45616c6e403f8909083afb1249401d6eebf1b9f19cace69bdc817", size = 19341 },
 ]
 
 [[package]]
@@ -3336,16 +3348,6 @@ version = "0.3.4"
 source = { registry = "https://pypi.org/simple" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/48/0a/c99fb7d7e176f8b176ef19704a32e6a9c6aafdf19ef75a187f701fc15801/pysbd-0.3.4-py3-none-any.whl", hash = "sha256:cd838939b7b0b185fcf86b0baf6636667dfb6e474743beeff878e9f42e022953", size = 71082 },
-]
-
-[[package]]
-name = "pysqlite3-binary"
-version = "0.5.4"
-source = { registry = "https://pypi.org/simple" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/45/c9/970017bfb83c3f374b3f85d85b2241954ca94a7cfe8d8709b0da5507a439/pysqlite3_binary-0.5.4-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:bf257ca54a0b94dce14324b29960fae5b1d57a669ce327b92fe245049abf2854", size = 5184545 },
-    { url = "https://files.pythonhosted.org/packages/fe/6a/fd500f0ab7d722671c6ec93093e93b7448b416cee2f35fc6c40131ddfa87/pysqlite3_binary-0.5.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:cb551d736ac3a049b3a91332dbcb0df506eaed58add8a95acfd264dc45ce3fa8", size = 5195175 },
-    { url = "https://files.pythonhosted.org/packages/87/ed/f6638728ea46bf90f0fba63d7f53a57cbab1ba7d34a1eb86419ca582a797/pysqlite3_binary-0.5.4-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:bb3653a0eb0ef5db2d0ed49d43b11ab4be24fdf5b2e65a39650fc59348e30dc6", size = 5188499 },
 ]
 
 [[package]]

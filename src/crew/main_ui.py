@@ -1,7 +1,3 @@
-__import__('pysqlite3')
-import sys
-sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
-sys.modules["sqlite3.dbapi2"] = sys.modules["pysqlite3.dbapi2"]
 """
 AI Doctor Crew - Streamlit Web Interface
 Comprehensive medical document processing and analysis system
@@ -24,19 +20,8 @@ import sys
 current_dir = Path(__file__).parent
 sys.path.append(str(current_dir))
 
-# Import our crew and tools
-try:
-    from src.crew.doc_crew import DocCrew
-    from src.crew.tools.milvus import ChromaDBClient, create_chromadb_client_safe
-    IMPORTS_SUCCESSFUL = True
-    IMPORT_ERROR = None
-except ImportError as e:
-    IMPORTS_SUCCESSFUL = False
-    IMPORT_ERROR = str(e)
-    # Don't stop here, let the UI handle it gracefully
-    DocCrew = None
-    ChromaDBClient = None
-    create_chromadb_client_safe = None
+from doc_crew import DocCrew
+from tools.milvus import ChromaDBClient, create_chromadb_client_safe
 
 # Page configuration
 st.set_page_config(
@@ -328,13 +313,6 @@ def sidebar_status():
         st.session_state.chat_history = []
         st.session_state.chat_mode = "initial"
         st.success("Chat history cleared!")
-    
-    # Debug info
-    with st.sidebar.expander("🔧 Debug Info"):
-        st.write(f"Chat Mode: {st.session_state.chat_mode}")
-        st.write(f"Profile Keys: {list(st.session_state.user_profile.keys()) if st.session_state.user_profile else 'None'}")
-        st.write(f"Chat Messages: {len(st.session_state.chat_history)}")
-        st.write(f"Medical Context: {st.session_state.medical_context[:50]}..." if st.session_state.medical_context else "None")
 
 def document_processing_tab():
     """Document Processing Tab"""
@@ -686,7 +664,6 @@ def run_medical_analysis(query: str, context: Dict[str, Any]):
             
         except Exception as e:
             st.error(f"❌ Analysis failed: {str(e)}")
-            st.error("Error details:", traceback.format_exc())
 
 def run_symptom_analysis(context: Dict[str, Any]):
     """Run symptom analysis"""
@@ -901,48 +878,8 @@ pip install --upgrade pip
 pip install -r requirements.txt
 pip install -e .
         """, language="bash")
-        
-        # Run dependency check button
-        if st.button("🔍 Run Dependency Check"):
-            with st.spinner("Checking dependencies..."):
-                # This will run our dependency check
-                st.code("python install_dependencies.py", language="bash")
-                st.info("Please run this command in your terminal to check and install dependencies")
     else:
         st.success("✅ All core dependencies imported successfully")
-        
-        # Show Python environment info
-        st.subheader("🐍 Python Environment")
-        import sys
-        st.write(f"**Python Version:** {sys.version}")
-        st.write(f"**Python Executable:** {sys.executable}")
-        
-        # Test key modules
-        modules_status = {}
-        test_modules = [
-            ('fitz', 'PyMuPDF'),
-            ('crewai', 'CrewAI'),
-            ('streamlit', 'Streamlit'),
-            ('pymilvus', 'Milvus'),
-            ('google.generativeai', 'Google AI')
-        ]
-        
-        for module, display_name in test_modules:
-            try:
-                imported = __import__(module)
-                if hasattr(imported, '__version__'):
-                    version = imported.__version__
-                elif hasattr(imported, 'version'):
-                    version = imported.version
-                else:
-                    version = "Unknown"
-                modules_status[display_name] = f"✅ {version}"
-            except ImportError:
-                modules_status[display_name] = "❌ Not Available"
-        
-        st.subheader("📚 Module Versions")
-        for module, status in modules_status.items():
-            st.write(f"**{module}:** {status}")
     
     # Environment variables
     st.subheader("🔧 Environment Configuration")
@@ -956,24 +893,6 @@ pip install -e .
             configure_api_keys()
     else:
         st.success("✅ All environment variables configured")
-        
-        # Show current configuration (masked)
-        with st.expander("🔍 View Current Configuration"):
-            config_info = {
-                "OpenAI API Key": "sk-..." + os.getenv("OPENAI_API_KEY", "")[-4:] if os.getenv("OPENAI_API_KEY") else "Not set",
-                "Milvus URI": os.getenv("MILVUS_URI", "Not set"),
-                "Milvus User": os.getenv("MILVUS_USER", "Not set"),
-                "Bytez API Key": "***" + os.getenv("BYTEZ_API_KEY", "")[-4:] if os.getenv("BYTEZ_API_KEY") else "Not set",
-                "Gemini API Key": "***" + os.getenv("GEMINI_API_KEY", "")[-4:] if os.getenv("GEMINI_API_KEY") else "Not set",
-                "Serper API Key": "***" + os.getenv("SERPER_API_KEY", "")[-4:] if os.getenv("SERPER_API_KEY") else "Not set"
-            }
-            
-            for key, value in config_info.items():
-                st.write(f"**{key}:** {value}")
-            
-            if st.button("🔄 Reconfigure API Keys"):
-                st.session_state.show_api_config = True
-                st.rerun()
     
     # System controls
     st.subheader("🎛️ System Controls")
@@ -1041,30 +960,13 @@ def main():
     if not st.session_state.doc_crew:
         try:
             with st.spinner("Initializing AI Doctor..."):
-                # Enhanced error handling and debugging
-                st.write("🔍 Debug: Attempting to create DocCrew instance...")
-                
                 # Check if DocCrew class is available
                 if DocCrew is None:
                     raise ImportError("DocCrew class is not available - import failed")
                 
-                # Try to initialize with detailed error tracking
-                try:
-                    doc_crew_instance = DocCrew()
-                    st.write("✅ Debug: DocCrew instance created successfully")
-                    st.session_state.doc_crew = doc_crew_instance
-                except TypeError as te:
-                    st.error(f"❌ DocCrew TypeError: {str(te)}")
-                    st.error("This usually indicates an issue with ChromaDB or tool initialization")
-                    raise
-                except AttributeError as ae:
-                    st.error(f"❌ DocCrew AttributeError: {str(ae)}")
-                    st.error("This usually indicates a missing dependency or incorrect import")
-                    raise
-                except Exception as init_error:
-                    st.error(f"❌ DocCrew initialization error: {str(init_error)}")
-                    st.error(f"Error type: {type(init_error).__name__}")
-                    raise
+                # Initialize DocCrew
+                doc_crew_instance = DocCrew()
+                st.session_state.doc_crew = doc_crew_instance
                 
                 if missing_vars:
                     st.session_state.system_status = "Ready (Limited)"
@@ -1073,31 +975,15 @@ def main():
             st.success("✅ AI Doctor initialized successfully!")
         except Exception as e:
             st.error(f"❌ Could not initialize AI Doctor: {str(e)}")
-            st.error(f"❌ Error type: {type(e).__name__}")
             
-            # Provide specific debugging information
+            # Show helpful error information
             if "'NoneType' object is not callable" in str(e):
-                st.error("� **Debugging 'NoneType' Error:**")
-                st.write("- This error typically occurs when ChromaDB fails to initialize properly")
-                st.write("- Common causes: SQLite version conflicts, missing dependencies, file permissions")
-                st.write("- Check if ChromaDB is properly installed and configured")
-                
-                # Show import status
-                st.write("**Import Status:**")
-                st.write(f"- IMPORTS_SUCCESSFUL: {IMPORTS_SUCCESSFUL}")
-                st.write(f"- DocCrew available: {DocCrew is not None}")
-                st.write(f"- ChromaDBClient available: {ChromaDBClient is not None}")
-                st.write(f"- create_chromadb_client_safe available: {create_chromadb_client_safe is not None}")
-                
+                st.error("🔍 This usually indicates a ChromaDB initialization issue")
                 if not IMPORTS_SUCCESSFUL:
-                    st.write(f"- Import Error: {IMPORT_ERROR}")
+                    st.error(f"Import Error: {IMPORT_ERROR}")
             
-            # Show full traceback for debugging
-            with st.expander("🔧 Full Error Traceback (for debugging)"):
-                st.code(traceback.format_exc())
-            
-            st.info("� Please check your API keys and t try again.")
-            st.info("🔄 If the issue persists,ry a refreshing the page orgrestartini the applicnt.o")
+            st.info("🔧 Please check your API keys and try again.")
+            st.info("🔄 If the issue persists, try refreshing the page.")
             return
     
     # Main chat interface
