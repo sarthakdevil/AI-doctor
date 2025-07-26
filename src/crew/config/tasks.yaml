@@ -32,7 +32,7 @@ provide_medical_guidance:
     consider the patient's profile (age, gender, medical conditions, current medications) 
     when giving advice - this makes your response personalized even without documents.
     Use tools SPARINGLY - only when you need specific current information:
-    - Use run_model tool (Bytez) only for complex medical questions needing specialized knowledge
+    - Use run_model tool (Bytez) for indepth medical knowledge and analysis about a condition
     - Use serper_dev_tool only for very recent medical research or current guidelines
     - For general health questions, use your existing medical knowledge plus patient profile
     Tailor advice to the patient's age, conditions, and medications when available.
