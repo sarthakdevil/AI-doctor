@@ -1,5 +1,7 @@
 # AI Doctor Crew - Complete Requirements
 # Core CrewAI and AI libraries
+gunicorn>=20.1.0
+uvicorn>=0.22.0
 crewai>=0.141.0
 crewai-tools>=0.51.1
 crewai-project>=0.1.0

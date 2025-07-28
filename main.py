@@ -5,8 +5,8 @@ from typing import Optional
 import os
 import tempfile
 import json
-from doc_crew import DocCrew
-from tools.milvus import ChromaDBClient, create_chromadb_client_safe
+from src.crew.doc_crew import DocCrew
+from src.crew.tools.milvus import ChromaDBClient, create_chromadb_client_safe
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -132,7 +132,3 @@ async def run_doc_crew(input: MedicalQuery):
     
     except Exception as e:
         return {"error": f"An error occurred: {str(e)}"}
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
