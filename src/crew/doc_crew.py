@@ -12,13 +12,13 @@ from crewai import Agent, Task, Crew, Process,LLM
 from crewai.project import CrewBase, agent, crew, task
 
 # Import tools
-from tools.milvus import (
+from src.crew.tools.milvus import (
     ChromaDBClient,
     chromadb_search_tool,
     milvus_search_tool  # Backward compatibility alias
 )
-from tools.bytez import run_model
-from tools.serper import SerperDevTool
+from src.crew.tools.bytez import run_model
+from src.crew.tools.serper import SerperDevTool
 load_dotenv()
 os.getenv("GEMINI_API_KEY")
 llm = LLM(
