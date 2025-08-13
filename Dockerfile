@@ -16,7 +16,8 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 # Copy source code
 COPY . .
+ENV CREWAI_TELEMETRY_ENABLED=false
 
 EXPOSE 8000
 # Start app
-CMD ["gunicorn", "--workers", "2", "--worker-class", "uvicorn.workers.UvicornWorker","--timeout", "24000","--bind", "0.0.0.0:8000", "main:app"]
+CMD ["gunicorn", "--workers", "2", "--worker-class", "uvicorn.workers.UvicornWorker","--timeout", "36000","--bind", "0.0.0.0:8000", "main:app"]
